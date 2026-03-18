@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L'Intelligence des Données — Un Plaidoyer pour le Machine Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=Spectral:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1814;
+    --paper: #f5f0e8;
+    --cream: #ede7d5;
+    --accent: #c0392b;
+    --gold: #b8860b;
+    --muted: #6b6457;
+    --code-bg: #2a2620;
+    --code-fg: #e8d5b0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* PROGRESS BAR */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.1s linear;
+    z-index: 999;
+  }
+
+  /* NAVIGATION */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 20px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: linear-gradient(to bottom, var(--paper), transparent);
+  }
+
+  .nav-logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg-text {
+    position: absolute;
+    top: 50%;
+    right: -60px;
+    transform: translateY(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(80px, 15vw, 200px);
+    font-weight: 700;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(192, 57, 43, 0.08);
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .hero-content {
+    max-width: 780px;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 1s ease forwards 0.3s;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(40px, 6vw, 80px);
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 32px;
+    letter-spacing: -0.02em;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-intro {
+    font-size: 20px;
+    color: var(--muted);
+    font-style: italic;
+    font-weight: 300;
+    max-width: 600px;
+    border-left: 3px solid var(--accent);
+    padding-left: 24px;
+    margin-bottom: 48px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 40px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .hero-meta span { text-transform: uppercase; }
+  .hero-meta strong { color: var(--ink); display: block; font-size: 14px; }
+
+  /* MAIN CONTENT */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 60px 120px;
+  }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 80px 0 48px;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.7s ease;
+  }
+
+  .section-divider.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .divider-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--accent), transparent);
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 28px;
+    letter-spacing: -0.01em;
+  }
+
+  h2 em { font-style: italic; color: var(--accent); }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--gold);
+    margin: 40px 0 16px;
+  }
+
+  p {
+    margin-bottom: 24px;
+    color: #2a2620;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: all 0.6s ease;
+  }
+
+  p.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* PULL QUOTE */
+  .pull-quote {
+    margin: 56px -40px;
+    padding: 40px 48px;
+    background: var(--cream);
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s ease;
+  }
+
+  .pull-quote.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .pull-quote::before {
+    content: '\201C';
+    font-family: 'Playfair Display', serif;
+    font-size: 120px;
+    color: var(--accent);
+    opacity: 0.15;
+    position: absolute;
+    top: -20px;
+    left: 24px;
+    line-height: 1;
+  }
+
+  .pull-quote blockquote {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(20px, 3vw, 28px);
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--ink);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* STAT CARDS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin: 40px 0;
+    background: var(--ink);
+  }
+
+  .stat-card {
+    background: var(--paper);
+    padding: 28px 24px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+  }
+
+  .stat-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .stat-card:hover {
+    background: var(--cream);
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* CODE BLOCK */
+  .code-snippet {
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin: 32px 0;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: all 0.6s ease;
+  }
+
+  .code-snippet.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .code-snippet::before {
+    content: attr(data-label);
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .code-snippet code {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--code-fg);
+    line-height: 1.8;
+    white-space: pre;
+    display: block;
+  }
+
+  .code-snippet .kw  { color: #e07b60; }
+  .code-snippet .fn  { color: #7ecba1; }
+  .code-snippet .cm  { color: #7a7068; }
+  .code-snippet .st  { color: #c8a96a; }
+  .code-snippet .nb  { color: #9ec4e8; }
+
+  /* CONCEPT PILLS */
+  .concepts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 28px 0;
+  }
+
+  .pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    color: var(--ink);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: default;
+    transition: all 0.2s;
+  }
+
+  .pill:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* PIPELINE VISUAL */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 40px 0;
+    overflow-x: auto;
+  }
+
+  .pipe-step {
+    flex: 1;
+    min-width: 100px;
+    padding: 20px 16px;
+    background: var(--cream);
+    border-left: 2px solid var(--paper);
+    text-align: center;
+    position: relative;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s ease;
+    cursor: default;
+  }
+
+  .pipe-step:first-child { border-left: none; }
+
+  .pipe-step.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .pipe-step:hover { background: var(--ink); color: var(--paper); }
+  .pipe-step:hover .pipe-num { color: var(--accent); }
+  .pipe-step:hover .pipe-name { color: var(--paper); }
+
+  .pipe-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .pipe-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+  }
+
+  /* ALERT BOX */
+  .alert-box {
+    border-left: 4px solid var(--accent);
+    padding: 20px 24px;
+    margin: 28px 0;
+    background: rgba(192, 57, 43, 0.04);
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.6s ease;
+  }
+
+  .alert-box.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .alert-box strong {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  /* CONCLUSION */
+  .conclusion {
+    margin-top: 100px;
+    padding: 80px 60px;
+    background: var(--ink);
+    color: var(--paper);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .conclusion::before {
+    content: 'ML';
+    position: absolute;
+    right: -40px;
+    bottom: -60px;
+    font-family: 'Playfair Display', serif;
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.03);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .conclusion h2 {
+    color: var(--paper);
+    margin-bottom: 32px;
+  }
+
+  .conclusion h2 em { color: var(--accent); }
+
+  .conclusion p {
+    color: rgba(245, 240, 232, 0.75);
+    opacity: 0;
+    transform: translateY(16px);
+    transition: all 0.6s ease;
+  }
+
+  .conclusion p.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .conclusion-signature {
+    margin-top: 60px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* FOOTNOTES */
+  footer {
+    padding: 40px 60px;
+    background: var(--cream);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.06em;
+  }
+
+  /* READING TIME BADGE */
+  .reading-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid currentColor;
+    padding: 6px 14px;
+    margin-bottom: 40px;
+    letter-spacing: 0.06em;
+  }
+
+  .reading-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SCROLL TO TOP */
+  #scroll-top {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 44px;
+    height: 44px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    z-index: 200;
+  }
+
+  #scroll-top.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #scroll-top:hover { background: var(--accent); }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 24px 60px; }
+    main { padding: 0 24px 80px; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .pull-quote { margin: 40px 0; }
+    .conclusion { padding: 60px 24px; }
+    footer { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <div class="nav-logo">Intelligence Artificielle · 2025</div>
+  <ul class="nav-links">
+    <li><a href="#fondements">Fondements</a></li>
+    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="#outils">Outils</a></li>
+    <li><a href="#pratique">Pratique</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-text">DATA</div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Texte argumentatif</div>
+    <h1>Le Machine Learning :<br>une <em>révolution</em><br>qui s'apprend.</h1>
+    <p class="hero-intro">
+      Des données brutes à la décision intelligente — comprendre le Machine Learning, c'est comprendre comment les machines apprennent à voir le monde. Un plaidoyer structuré pour une discipline mal comprise et pourtant incontournable.
+    </p>
+    <div class="hero-meta">
+      <div><span>Lecture</span><strong>~8 minutes</strong></div>
+      <div><span>Thèmes</span><strong>7 parties</strong></div>
+      <div><span>Niveau</span><strong>Débutant → Avancé</strong></div>
+    </div>
+  </div>
+</section>
+
+<main>
+
+  <!-- SECTION 1 : DONNÉES -->
+  <div id="fondements" class="section-divider animate-elem">
+    <span class="divider-num">01 —</span>
+    <div class="divider-line"></div>
+    <span class="divider-num">LES DONNÉES</span>
+  </div>
+
+  <h2>La donnée : <em>matière première</em><br>de toute intelligence artificielle</h2>
+
+  <p class="animate-elem">
+    Il serait vain de parler de machine learning sans commencer par là où tout commence : la donnée. Car contrairement à ce que l'on imagine parfois, une machine n'est pas naturellement intelligente. Elle ne l'est que dans la mesure où les données qu'on lui fournit lui permettent de le devenir. Les données sont le carburant, le sol, la lumière de cet écosystème.
+  </p>
+
+  <p class="animate-elem">
+    On distingue deux grandes familles : les données <strong>structurées</strong> — organisées en lignes et colonnes comme un tableau Excel, facilement exploitables — et les données <strong>non structurées</strong>, qui constituent en réalité l'immense majorité de ce qui circule dans le monde numérique : images, textes, sons, vidéos. Et c'est précisément pour traiter cette seconde famille que les réseaux de neurones profonds ont connu un essor spectaculaire depuis les années 2010.
+  </p>
+
+  <div class="pull-quote animate-elem">
+    <blockquote>
+      "Un modèle ne sera jamais meilleur que les données qu'on lui a données. L'excellence technique ne rachète pas des données médiocres."
+    </blockquote>
+  </div>
+
+  <p class="animate-elem">
+    C'est pourquoi la préparation des données — ce que les praticiens appellent le <em>data wrangling</em> — constitue en réalité entre 60 et 80 % du travail réel d'un projet de machine learning. Nettoyage des valeurs aberrantes, gestion des données manquantes, encodage des variables catégorielles, normalisation des échelles : autant d'étapes invisibles au grand public, mais déterminantes pour la qualité finale du modèle.
+  </p>
+
+  <div class="concepts animate-elem">
+    <span class="pill">Dataset</span>
+    <span class="pill">Features</span>
+    <span class="pill">Labels</span>
+    <span class="pill">Nettoyage</span>
+    <span class="pill">Normalisation</span>
+    <span class="pill">Train / Val / Test</span>
+    <span class="pill">Encodage</span>
+  </div>
+
+  <!-- SECTION 2 : APPRENTISSAGE -->
+  <div class="section-divider animate-elem">
+    <span class="divider-num">02 —</span>
+    <div class="divider-line"></div>
+    <span class="divider-num">L'APPRENTISSAGE</span>
+  </div>
+
+  <h2>Trois paradigmes pour <em>apprendre</em></h2>
+
+  <p class="animate-elem">
+    Le mot "apprentissage" dans Machine Learning n'est pas une métaphore. Il décrit précisément ce qui se passe : un algorithme qui améliore ses performances sur une tâche à mesure qu'il est exposé à des exemples. Mais tous les apprentissages ne se ressemblent pas, et trois grands paradigmes structurent ce champ.
+  </p>
+
+  <h3>L'apprentissage supervisé : apprendre avec un maître</h3>
+
+  <p class="animate-elem">
+    C'est le paradigme le plus répandu. On fournit au modèle des exemples labellisés — c'est-à-dire des paires (entrée, réponse attendue) — et il apprend à reproduire la correspondance entre les deux. Prédire le prix d'une maison à partir de sa surface et de son emplacement, identifier si un email est un spam, diagnostiquer une pathologie à partir d'une image médicale : toutes ces tâches relèvent de l'apprentissage supervisé.
+  </p>
+
+  <h3>L'apprentissage non supervisé : trouver l'ordre dans le chaos</h3>
+
+  <p class="animate-elem">
+    Sans labels, sans réponse attendue, un algorithme peut-il apprendre quelque chose d'utile ? Oui — à condition de chercher non pas à prédire, mais à <em>découvrir</em>. Le clustering permet de regrouper des clients similaires sans jamais leur avoir assigné de catégorie. La réduction de dimension compresse des données complexes en représentations visuelles exploitables. Ces approches révèlent des structures cachées dans les données que l'œil humain ne saurait distinguer.
+  </p>
+
+  <h3>L'apprentissage par renforcement : apprendre en agissant</h3>
+
+  <p class="animate-elem">
+    Le troisième paradigme est le plus fascinant. Un agent interagit avec un environnement, reçoit des récompenses ou des pénalités selon ses actions, et optimise progressivement sa stratégie. C'est ainsi qu'AlphaGo a appris à jouer au Go mieux que n'importe quel humain, et que les robots apprennent à marcher sans qu'on leur ait jamais décrit comment le faire.
+  </p>
+
+  <div class="stats-grid animate-elem">
+    <div class="stat-card">
+      <div class="stat-num">70%</div>
+      <div class="stat-label">des projets ML<br>sont supervisés</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">80%</div>
+      <div class="stat-label">du temps consacré<br>aux données</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">10×</div>
+      <div class="stat-label">exemples minimum<br>par variable</div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 : OPTIMISATION -->
+  <div id="pipeline" class="section-divider animate-elem">
+    <span class="divider-num">03 —</span>
+    <div class="divider-line"></div>
+    <span class="divider-num">L'OPTIMISATION</span>
+  </div>
+
+  <h2>La descente de gradient :<br><em>l'art de se tromper</em> dans la bonne direction</h2>
+
+  <p class="animate-elem">
+    Comment un modèle apprend-il concrètement ? Par l'erreur, et par la correction de l'erreur. Le mécanisme central s'appelle la descente de gradient : le modèle prédit, compare sa prédiction à la réalité via une <em>fonction de perte</em>, puis ajuste ses paramètres internes dans la direction qui réduit cette erreur. Puis il recommence. Des milliers, des millions de fois.
+  </p>
+
+  <div class="code-snippet animate-elem" data-label="Python — Boucle d'entraînement">
+    <code><span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(n_epochs):
+    <span class="kw">for</span> X_batch, y_batch <span class="kw">in</span> dataloader:
+        y_pred = model(X_batch)          <span class="cm"># prédiction</span>
+        loss   = loss_fn(y_pred, y_batch) <span class="cm"># erreur</span>
+        loss.backward()                  <span class="cm"># rétropropagation</span>
+        optimizer.step()                 <span class="cm"># mise à jour des poids</span>
+        optimizer.zero_grad()            <span class="cm"># reset des gradients</span></code>
+  </div>
+
+  <p class="animate-elem">
+    Le <em>learning rate</em> — vitesse d'apprentissage — est l'un des hyperparamètres les plus critiques : trop élevé, le modèle diverge et n'apprend rien ; trop faible, l'entraînement prend une éternité. C'est cet équilibre délicat entre vitesse et stabilité qui occupe une grande part du travail de réglage. Deux autres paramètres structurent cet apprentissage : le <em>batch size</em> (nombre d'exemples traités avant chaque mise à jour des poids) et le nombre d'<em>epochs</em> (passages complets sur le dataset).
+  </p>
+
+  <div class="alert-box animate-elem">
+    <strong>Piège classique — Overfitting</strong>
+    Si la loss diminue sur le train mais augmente sur la validation, le modèle <em>mémorise</em> les données d'entraînement au lieu d'en extraire les patterns généralisables. Solution : régularisation (dropout, L1/L2), early stopping, ou plus de données.
+  </div>
+
+  <!-- SECTION 4 : PIPELINE -->
+  <div class="section-divider animate-elem">
+    <span class="divider-num">04 —</span>
+    <div class="divider-line"></div>
+    <span class="divider-num">LE PIPELINE</span>
+  </div>
+
+  <h2>Un pipeline en <em>cinq actes</em></h2>
+
+  <p class="animate-elem">
+    Un projet de machine learning ne commence pas par l'écriture du modèle. Il commence par la compréhension du problème, et se déroule selon une séquence rigoureuse que tout praticien doit respecter sous peine d'obtenir des résultats trompeurs.
+  </p>
+
+  <div class="pipeline">
+    <div class="pipe-step animate-elem">
+      <div class="pipe-num">01</div>
+      <div class="pipe-name">Collecte<br>& Nettoyage</div>
+    </div>
+    <div class="pipe-step animate-elem">
+      <div class="pipe-num">02</div>
+      <div class="pipe-name">Exploration<br>& Features</div>
+    </div>
+    <div class="pipe-step animate-elem">
+      <div class="pipe-num">03</div>
+      <div class="pipe-name">Modèle<br>& Entraînement</div>
+    </div>
+    <div class="pipe-step animate-elem">
+      <div class="pipe-num">04</div>
+      <div class="pipe-name">Évaluation<br>& Réglage</div>
+    </div>
+    <div class="pipe-step animate-elem">
+      <div class="pipe-num">05</div>
+      <div class="pipe-name">Déploiement<br>& Surveillance</div>
+    </div>
+  </div>
+
+  <p class="animate-elem">
+    La règle la plus souvent violée par les débutants : effectuer le split train/validation/test <strong>avant</strong> toute normalisation ou transformation. Appliquer un StandardScaler sur l'ensemble du dataset avant de le diviser constitue une fuite de données — le modèle "voit" indirectement les données de test, et ses performances en évaluation seront artificiellement gonflées. En production, la désillusion est cruelle.
+  </p>
+
+  <!-- SECTION 5 : OUTILS -->
+  <div id="outils" class="section-divider animate-elem">
+    <span class="divider-num">05 —</span>
+    <div class="divider-line"></div>
+    <span class="divider-num">L'ÉCOSYSTÈME</span>
+  </div>
+
+  <h2>Des outils pour chaque <em>niveau d'ambition</em></h2>
+
+  <p class="animate-elem">
+    L'un des atouts majeurs du machine learning moderne est la richesse de son écosystème open-source. Pour les données tabulaires, <strong>scikit-learn</strong> reste la référence incontestée : une API cohérente, des algorithmes éprouvés, une documentation exemplaire. Pour les problèmes de classification sur données structurées, <strong>XGBoost</strong> et <strong>LightGBM</strong> dominent les compétitions depuis une décennie — rapides, précis, robustes au déséquilibre de classes.
+  </p>
+
+  <p class="animate-elem">
+    Quand la complexité des données exige des architectures plus profondes, <strong>PyTorch</strong> s'impose par sa flexibilité et sa proximité avec la recherche académique. <strong>TensorFlow</strong> et son interface haut niveau <strong>Keras</strong> privilégient quant à eux la mise en production industrielle. Et pour le traitement du langage, la bibliothèque <strong>Hugging Face Transformers</strong> a démocratisé l'accès à des modèles de plusieurs milliards de paramètres, autrefois réservés aux laboratoires de recherche des géants technologiques.
+  </p>
+
+  <p class="animate-elem">
+    Enfin, les outils de MLOps — <strong>MLflow</strong>, <strong>Weights & Biases</strong>, <strong>DVC</strong> — sont devenus indispensables pour tracer les expériences, versionner les modèles et garantir la reproductibilité. Car un modèle qu'on ne peut pas reproduire est un modèle qu'on ne peut pas améliorer.
+  </p>
+
+  <!-- SECTION 6 : CAS PRATIQUE -->
+  <div id="pratique" class="section-divider animate-elem">
+    <span class="divider-num">06 —</span>
+    <div class="divider-line"></div>
+    <span class="divider-num">CAS PRATIQUE</span>
+  </div>
+
+  <h2>La détection de fraudes :<br>quand <em>l'accuracy ment</em></h2>
+
+  <p class="animate-elem">
+    Aucun exemple n'illustre mieux les pièges du machine learning que la détection de fraudes bancaires. Considérons un dataset de 100 000 transactions dans lequel 500 seulement sont frauduleuses — soit 0,5 %. Un modèle qui prédirait systématiquement "transaction légitime" afficherait une précision globale de 99,5 %. Excellent score. Modèle parfaitement inutile.
+  </p>
+
+  <div class="alert-box animate-elem">
+    <strong>Règle absolue — Classes déséquilibrées</strong>
+    L'accuracy est une métrique dangereuse quand les classes sont déséquilibrées. Lui préférer l'<em>AUC-ROC</em>, la <em>Precision</em> et surtout le <em>Recall</em> — car rater une fraude a un coût bien supérieur à bloquer une transaction légitime.
+  </div>
+
+  <p class="animate-elem">
+    La solution passe par plusieurs leviers combinés. Le paramètre <code>class_weight='balanced'</code> pénalise davantage les erreurs sur la classe minoritaire. La technique SMOTE génère synthétiquement de nouveaux exemples de fraudes pour rééquilibrer le dataset d'entraînement. Et surtout, le seuil de décision — généralement fixé à 0,5 par défaut — doit être ajusté selon la tolérance métier : abaisser ce seuil à 0,3 détecte plus de fraudes, au prix d'un taux de faux positifs plus élevé. C'est une décision qui appartient au métier, pas à l'algorithme.
+  </p>
+
+  <div class="code-snippet animate-elem" data-label="Python — Détection de fraudes">
+    <code><span class="cm"># Rééquilibrage + modèle adapté</span>
+<span class="kw">from</span> imblearn.over_sampling <span class="kw">import</span> SMOTE
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+
+sm = <span class="fn">SMOTE</span>(random_state=<span class="nb">42</span>)
+X_res, y_res = sm.<span class="fn">fit_resample</span>(X_train, y_train)
+
+model = <span class="fn">RandomForestClassifier</span>(
+    class_weight=<span class="st">'balanced'</span>,
+    n_estimators=<span class="nb">200</span>
+)
+model.<span class="fn">fit</span>(X_res, y_res)
+
+<span class="cm"># Seuil ajustable selon le coût métier</span>
+y_proba = model.<span class="fn">predict_proba</span>(X_test)[:, <span class="nb">1</span>]
+y_pred  = (y_proba >= <span class="nb">0.3</span>).astype(int)</code>
+  </div>
+
+  <p class="animate-elem">
+    Ce cas illustre une vérité fondamentale : le machine learning n'est pas qu'une discipline technique. C'est un dialogue permanent entre la donnée, l'algorithme et le contexte métier. Ignorer l'un de ces trois piliers, c'est construire un modèle qui performe en laboratoire et échoue en production.
+  </p>
+
+  <!-- SECTION 7 : ERREURS CRUCIALES -->
+  <div class="section-divider animate-elem">
+    <span class="divider-num">07 —</span>
+    <div class="divider-line"></div>
+    <span class="divider-num">LES PIÈGES</span>
+  </div>
+
+  <h2>Ce que les métriques <em>ne disent pas</em></h2>
+
+  <p class="animate-elem">
+    À mesure que l'on progresse dans la compréhension du machine learning, une conviction s'impose : les dangers les plus sérieux ne sont pas ceux qu'on voit. Le <em>data leakage</em> — cette fuite subtile d'informations du futur dans le présent — peut produire des résultats de validation parfaits et des échecs retentissants en production. L'<em>overfitting silencieux</em> flatte les métriques d'entraînement pendant que la capacité de généralisation s'érode. Et la corrélation, si tentante à interpréter comme une causalité, peut mener à des décisions dangereusement erronées.
+  </p>
+
+  <p class="animate-elem">
+    L'antidote à ces pièges tient en quelques principes simples mais exigeants : toujours définir une baseline avant tout modèle complexe, choisir ses métriques selon le problème réel et non selon ce qui est facile à maximiser, et surtout ne jamais laisser un modèle en production sans surveillance. Les données du monde réel dérivent. Les comportements changent. Un modèle de détection de fraudes entraîné en 2022 ignorera les schémas frauduleux apparus en 2024.
+  </p>
+
+  <div class="pull-quote animate-elem">
+    <blockquote>
+      "Le meilleur modèle n'est pas celui qui a la plus haute accuracy. C'est celui qui résout le problème réel, avec les vraies données, dans les vraies conditions."
+    </blockquote>
+  </div>
+
+</main>
+
+<!-- CONCLUSION -->
+<section id="conclusion" class="conclusion">
+  <h2>Apprendre à faire <em>apprendre</em> les machines</h2>
+
+  <p class="animate-elem">
+    Le machine learning n'est pas une boîte noire réservée à quelques initiés. C'est une discipline structurée, exigeante, qui demande autant de rigueur méthodologique que de sens du contexte. Comprendre ce qu'est une feature, pourquoi on normalise après le split, comment choisir sa métrique selon son problème — ce sont des savoirs accessibles, et ils changent la façon dont on aborde les données.
+  </p>
+
+  <p class="animate-elem">
+    De la régression linéaire au Transformer, de scikit-learn à PyTorch, du clustering à la détection de fraudes en temps réel : chaque couche de complexité révèle une couche supplémentaire de possibilités. Mais toutes partagent le même fondement : des données de qualité, un problème bien formulé, et une évaluation honnête des résultats.
+  </p>
+
+  <p class="animate-elem">
+    Car c'est là la leçon la plus précieuse que le machine learning enseigne à ceux qui le pratiquent : avant d'apprendre aux machines à voir le monde, il faut d'abord apprendre à voir les machines pour ce qu'elles sont — des outils extraordinairement puissants, et extraordinairement dépendants de la qualité de ceux qui les guident.
+  </p>
+
+  <div class="conclusion-signature">
+    <span>Rédigé à partir d'une session d'apprentissage ML complète</span>
+    <span>2025 · Intelligence Artificielle</span>
+  </div>
+</section>
+
+<footer>
+  Couverture complète : Données · Apprentissage · Optimisation · Pipeline · Outils · Cas pratique · Pièges critiques
+</footer>
+
+<button id="scroll-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const scrolled = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = Math.round(scrolled) + '%';
+
+    const scrollTop = document.getElementById('scroll-top');
+    if (window.scrollY > 400) scrollTop.classList.add('show');
+    else scrollTop.classList.remove('show');
+  });
+
+  // Intersection Observer for scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        const delay = entry.target.dataset.delay || 0;
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, delay);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  // Stagger pipe steps
+  document.querySelectorAll('.pipe-step').forEach((el, i) => {
+    el.dataset.delay = i * 80;
+  });
+
+  // Stagger stat cards
+  document.querySelectorAll('.stat-card').forEach((el, i) => {
+    el.dataset.delay = i * 100;
+  });
+
+  document.querySelectorAll('.animate-elem, p, .section-divider, .pull-quote, .code-snippet, .alert-box, .stat-card, .pipe-step, .concepts').forEach(el => {
+    observer.observe(el);
+  });
+</script>
+
+</body>
+</html>
